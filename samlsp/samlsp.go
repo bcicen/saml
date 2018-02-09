@@ -31,6 +31,7 @@ type Options struct {
 	CookieMaxAge      time.Duration
 	CookieSecure      bool
 	ForceAuthn        bool
+	RedirectURI       string // used only with idp-initiated flow
 }
 
 // New creates a new Middleware
@@ -42,6 +43,10 @@ func New(opts Options) (*Middleware, error) {
 	logr := opts.Logger
 	if logr == nil {
 		logr = logger.DefaultLogger
+	}
+
+	if opts.RedirectURI == "" {
+		opts.RedirectURI = "/"
 	}
 
 	tokenMaxAge := opts.CookieMaxAge
@@ -61,6 +66,7 @@ func New(opts Options) (*Middleware, error) {
 		},
 		AllowIDPInitiated: opts.AllowIDPInitiated,
 		TokenMaxAge:       tokenMaxAge,
+		RedirectURI:       opts.RedirectURI,
 	}
 
 	cookieStore := ClientCookies{

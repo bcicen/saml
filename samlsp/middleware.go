@@ -48,6 +48,7 @@ type Middleware struct {
 	TokenMaxAge       time.Duration
 	ClientState       ClientState
 	ClientToken       ClientToken
+	RedirectURI       string // used only with idp-initiated flow
 }
 
 var jwtSigningMethod = jwt.SigningMethodHS256
@@ -194,7 +195,7 @@ func (m *Middleware) getPossibleRequestIDs(r *http.Request) []string {
 func (m *Middleware) Authorize(w http.ResponseWriter, r *http.Request, assertion *saml.Assertion) {
 	secretBlock := x509.MarshalPKCS1PrivateKey(m.ServiceProvider.Key)
 
-	redirectURI := "/"
+	redirectURI := m.RedirectURI
 	if relayState := r.Form.Get("RelayState"); relayState != "" {
 		stateValue := m.ClientState.GetState(r, relayState)
 		if stateValue == "" {

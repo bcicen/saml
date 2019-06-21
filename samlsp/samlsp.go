@@ -32,6 +32,7 @@ type Options struct {
 	CookieSecure      bool
 	ForceAuthn        bool
 	RedirectURI       string // used only with idp-initiated flow
+	IgnoreRelay       bool   // ignore assertion RelayState
 }
 
 // New creates a new Middleware
@@ -67,6 +68,7 @@ func New(opts Options) (*Middleware, error) {
 		AllowIDPInitiated: opts.AllowIDPInitiated,
 		TokenMaxAge:       tokenMaxAge,
 		RedirectURI:       opts.RedirectURI,
+		IgnoreRelay:       opts.IgnoreRelay,
 	}
 
 	cookieStore := ClientCookies{

@@ -49,6 +49,7 @@ type Middleware struct {
 	ClientState       ClientState
 	ClientToken       ClientToken
 	RedirectURI       string // used only with idp-initiated flow
+	IgnoreRelay       bool   // ignore assertion RelayState
 }
 
 var jwtSigningMethod = jwt.SigningMethodHS256
@@ -198,7 +199,8 @@ func (m *Middleware) Authorize(w http.ResponseWriter, r *http.Request, assertion
 	secretBlock := x509.MarshalPKCS1PrivateKey(m.ServiceProvider.Key)
 
 	redirectURI := m.RedirectURI
-	if relayState := r.Form.Get("RelayState"); relayState != "" {
+	relayState := r.Form.Get("RelayState")
+	if !m.IgnoreRelay && relayState != "" {
 		stateValue := m.ClientState.GetState(r, relayState)
 		if stateValue == "" {
 			m.ServiceProvider.Logger.Printf("cannot find corresponding state: %s", relayState)
@@ -254,6 +256,7 @@ func (m *Middleware) Authorize(w http.ResponseWriter, r *http.Request, assertion
 	}
 
 	m.ClientToken.SetToken(w, r, signedToken, m.TokenMaxAge)
+	m.ServiceProvider.Logger.Printf("returning redirect [%s]", redirectURI)
 	http.Redirect(w, r, redirectURI, http.StatusFound)
 }
 
